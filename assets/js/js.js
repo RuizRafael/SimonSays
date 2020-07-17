@@ -39,7 +39,7 @@ $(document).keydown(function(e){
 ***********************************************************************************/
 
 let actualPulse = 0;
-let arrayPulses = [0,1,2,3];
+let arrayPulses = [];
 let arrayBtn = ["btn-green","btn-red","btn-yellow","btn-blue"];
 let getIndex = {"btn-green":"0", "btn-red":"1", "btn-yellow":"2", "btn-blue":"3"};
 
@@ -193,7 +193,7 @@ function resetIconOut() {
 }
 
 function resetGame() {
-	arrayPulses = [0,1,2,3];
+	arrayPulses = [];
 	errorPulse();
 	resetIconOut();
 	document.getElementById('counter').innerHTML = 0;
