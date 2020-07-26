@@ -10,12 +10,14 @@ function eventController() {
 		document.body.addEventListener("click", targetClicked, false);
 
 		// document.getElementById('power').addEventListener('click', errorPulse);
-		document.getElementById('start').addEventListener('click', addPulse);
+		document.getElementById('start').addEventListener('click', startGame);
 		document.getElementById('stop').addEventListener('click', resetGame);
-		
 		document.getElementById('reset').addEventListener('click', resetGame);
 
+		document.getElementById('rankingIcon').addEventListener('click', showRanking);
+		document.getElementById('rankingMenu').addEventListener('click', showRanking);
 
+		// chargeRanking();
 	}
 }
 
@@ -34,16 +36,37 @@ $(document).keydown(function(e){
 */
 
 
+
 /**********************************************************************************
-		VARIABLES GLOB
+		FIREBASE CONF
 ***********************************************************************************/
+//  var firebaseConfig = {
+//     apiKey: "AIzaSyAZU5nhVUQAYjWiTTv4I0ZmwRNSjT0XOpo",
+//     authDomain: "simonsays-302e3.firebaseapp.com",
+//     databaseURL: "https://simonsays-302e3.firebaseio.com",
+//     projectId: "simonsays-302e3",
+//     storageBucket: "simonsays-302e3.appspot.com",
+//     messagingSenderId: "719880652882",
+//     appId: "1:719880652882:web:ad2fee7db95ce924c2b78b" 
+//   };
+//   // Initialize Firebase
+//   firebase.initializeApp(firebaseConfig);
+
+
+// /**********************************************************************************
+// 		VARIABLES GLOB
+// ***********************************************************************************/
+// let db = firebase.firestore();
+// let ranking = db.collection('ranking');
 
 let actualPulse = 0;
 let arrayPulses = [];
+let scoreRanking = [];
 let arrayBtn = ["btn-green","btn-red","btn-yellow","btn-blue"];
 let getIndex = {"btn-green":"0", "btn-red":"1", "btn-yellow":"2", "btn-blue":"3"};
 
 let block = false;
+let blockStop = false;
 let delay = 550;
 
 let r = new Audio("https://s3.amazonaws.com/freecodecamp/simonSound1.mp3"),
@@ -57,6 +80,16 @@ let sounds = [g, r, y, b];
 /**********************************************************************************
 		FUNCTIONS
 ***********************************************************************************/
+// function chargeRanking() {
+
+// 	console.log('CARGANDO RANKING');
+// 		scoreRanking = [];
+// 		ranking.onSnapshot(rank => {
+// 			rank.forEach(person => {
+// 					scoreRanking.push([person.data().name, person.data().score]);
+// 			});
+// 	});
+// }
 
 let idClicked, classClicked;
 const targetClicked = (e) => {
@@ -67,32 +100,33 @@ const targetClicked = (e) => {
 		verifyPulse(idClicked);
 	}
 }
-
+function startGame() {
+	if( !blockStop ) {
+		blockStop = true;
+		addPulse();
+	}
+}
 function addPulse() {
+		calculateDelay();
 
-	calculateDelay();
+		block = false;
+		document.getElementById('counter').innerHTML = parseInt(document.getElementById('counter').innerHTML) + 1;
+		arrayPulses.push(Math.floor(Math.random() * 4));
 
-	block = false;
-	document.getElementById('counter').innerHTML = parseInt(document.getElementById('counter').innerHTML) + 1;
-	arrayPulses.push(Math.floor(Math.random() * 4));
+		arrayPulses.forEach(function (pulse, i) {
+			setTimeout(function () {
+				pulseBtn(arrayBtn[pulse]);
+			}, delay*i);
+		});
 
-	arrayPulses.forEach(function (pulse, i) {
 		setTimeout(function () {
-			sounds[pulse].play();
-
-			pulseBtn(arrayBtn[pulse]);
-		}, delay*i);
-	});
-
-	setTimeout(function () {
-		block = true;
-	}, delay*(arrayPulses.length-1));
-
+			block = true;
+		}, delay*(arrayPulses.length-1));
+	
 }
 
 
 function verifyPulse(id) {
-	sounds[getIndex[id]].play();
 
 	if(id == arrayBtn[arrayPulses[actualPulse]] && arrayBtn[arrayPulses[actualPulse]] != undefined){
 		actualPulse ++;
@@ -116,6 +150,7 @@ function resetBlock() {
 }
 
 function pulseBtn(id) {
+	sounds[getIndex[id]].play();
 
 	document.getElementById(id).classList.add("pressed");
 	setTimeout(function () {
@@ -184,21 +219,43 @@ function notifyIncorrect() {
 }
 function resetIcon() {
 	setTimeout(function () {
-		document.getElementById('reset').style.display = "block";
+		document.getElementById('reset').style.zIndex = "1";
 		document.getElementById('reset').style.opacity = "1";
 	}, 1000);
 }
 function resetIconOut() {
 	document.getElementById('reset').style.opacity = "0";
+	document.getElementById('reset').style.zIndex = "-1";
 }
 
 function resetGame() {
-	arrayPulses = [];
-	errorPulse();
-	resetIconOut();
-	document.getElementById('counter').innerHTML = 0;
+	if( blockStop ) {
+		blockStop = false;
+		if( block ) {
+			arrayPulses = [];
+			errorPulse();
+			resetIconOut();
+			document.getElementById('counter').innerHTML = 0;
 
-	setTimeout(function () {
-		addPulse();
-	}, 1500);
+			setTimeout(function () {
+				addPulse();
+			}, 1500);
+		}
+
+		setTimeout(function () {
+			blockStop = true;
+		}, 1000);
+	}
+	
+}
+
+function showRanking() {
+	if( document.getElementById('ranking').classList == "showRanking" ) {
+		document.getElementById('ranking').classList.remove("showRanking");
+		document.getElementById('sidebar').classList.remove("overlay");
+	} else {
+		document.getElementById('ranking').classList.add("showRanking");
+		document.getElementById('sidebar').classList.add("overlay");
+
+	}
 }
